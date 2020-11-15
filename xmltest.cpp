@@ -708,7 +708,9 @@ int main( int argc, const char ** argv )
 			while ( fgets( verifyBuf, 256, verify ) )
 			{
 				char savedBuf[256];
-				fgets( savedBuf, 256, saved );
+        // ignore function output for -Werror=unused-result
+				if( NULL == fgets( savedBuf, 256, saved ) );
+
 				NullLineEndings( verifyBuf );
 				NullLineEndings( savedBuf );
 
@@ -1192,7 +1194,8 @@ int main( int argc, const char ** argv )
 		if ( textfile )
 		{
 			char buf[ 1024 ];
-			fgets( buf, 1024, textfile );
+      // ignore function output for -Werror=unused-result
+			if(NULL == fgets( buf, 1024, textfile ) );
 			XMLTest( "Entity transformation: write. ",
 					 "<psg context=\"Line 5 has &quot;quotation marks&quot; and &apos;apostrophe marks&apos;."
 					 " It also has &lt;, &gt;, and &amp;, as well as a fake copyright \xC2\xA9.\"/>\n",
