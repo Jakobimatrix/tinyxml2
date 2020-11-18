@@ -24,8 +24,8 @@ _CrtMemState endMemState;
 
 using namespace tinyxml2;
 using namespace std;
-int gPass = 0;
-int gFail = 0;
+static int gPass = 0;
+static int gFail = 0;
 
 
 bool XMLTest(const char* testString,
@@ -723,14 +723,14 @@ int main(int argc, const char** argv) {
     const unsigned char correctValue[] = {
         0xd1U, 0x86U, 0xd0U, 0xb5U, 0xd0U, 0xbdU, 0xd0U, 0xbdU, 0xd0U, 0xbeU, 0xd1U, 0x81U, 0xd1U, 0x82U, 0xd1U, 0x8cU, 0};
 
-    XMLTest("UTF-8: Russian value.", (const char*)correctValue, element->Attribute("value"));
+    XMLTest("UTF-8: Russian value.", reinterpret_cast<const char*>(correctValue), element->Attribute("value"));
 
     const unsigned char russianElementName[] = {
         0xd0U, 0xa0U, 0xd1U, 0x83U, 0xd1U, 0x81U, 0xd1U, 0x81U, 0xd0U, 0xbaU, 0xd0U, 0xb8U, 0xd0U, 0xb9U, 0};
     const char russianText[] = "<\xD0\xB8\xD0\xBC\xD0\xB5\xD0\xB5\xD1\x82>";
 
     XMLText* text = doc.FirstChildElement("document")
-                        ->FirstChildElement((const char*)russianElementName)
+                        ->FirstChildElement(reinterpret_cast<const char*>(russianElementName))
                         ->FirstChild()
                         ->ToText();
     XMLTest("UTF-8: Browsing russian element name.", russianText, text->Value());
@@ -1457,7 +1457,7 @@ int main(int argc, const char** argv) {
   buf[61] = 0;
 
   XMLDocument doc;
-  doc.Parse((const char*)buf);
+  doc.Parse(reinterpret_cast<const char*>(buf));
   XMLTest("Broken CDATA", true, doc.Error());
 }
 

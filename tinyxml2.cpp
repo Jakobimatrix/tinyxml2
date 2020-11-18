@@ -635,7 +635,7 @@ bool XMLUtil::ToInt64(const char* str, int64_t* value) {
 bool XMLUtil::ToUnsigned64(const char* str, uint64_t* value) {
   unsigned long long v = 0;  // horrible syntax trick to make the compiler happy about %llu
   if (TIXML_SSCANF(str, IsPrefixHex(str) ? "%llx" : "%llu", &v) == 1) {
-    *value = (uint64_t)v;
+    *value = static_cast<uint64_t>(v);
     return true;
   }
   return false;
