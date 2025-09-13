@@ -32,6 +32,8 @@ distribution.
 #   include <cstdarg>
 #endif
 
+#include <sstream>
+
 #if defined(_MSC_VER) && (_MSC_VER >= 1400 ) && (!defined WINCE)
 	// Microsoft Visual Studio, version 2005 and higher. Not WinCE.
 	/*int _snprintf_s(
@@ -555,6 +557,10 @@ const char* XMLUtil::GetCharacterRef(const char* p, char* value, int* length)
     return p + 1;
 }
 
+void XMLUtil::ToStr(std::string v, char* buffer, int bufferSize) {
+  TIXML_SNPRINTF(buffer, bufferSize, "%s", v.c_str());
+}
+
 void XMLUtil::ToStr( int v, char* buffer, int bufferSize )
 {
     TIXML_SNPRINTF( buffer, bufferSize, "%d", v );
@@ -598,6 +604,11 @@ void XMLUtil::ToStr( uint64_t v, char* buffer, int bufferSize )
 {
     // horrible syntax trick to make the compiler happy about %llu
     TIXML_SNPRINTF(buffer, bufferSize, "%llu", static_cast<unsigned long long>(v));
+}
+
+bool XMLUtil::ToStr(const char* str, std::string* value) {
+  *value = std::string(str);
+  return true;
 }
 
 bool XMLUtil::ToInt(const char* str, int* value)
@@ -1472,6 +1483,13 @@ void XMLAttribute::SetName( const char* n )
     _name.SetStr( n );
 }
 
+XMLError XMLAttribute::QueryStringValue(std::string* value) const {
+  if (XMLUtil::ToStr(Value(), value)) {
+    return XML_SUCCESS;
+  }
+  return XML_WRONG_ATTRIBUTE_TYPE;
+}
+
 
 XMLError XMLAttribute::QueryIntValue( int* value ) const
 {
@@ -1636,6 +1654,10 @@ const char* XMLElement::Attribute( const char* name, const char* value ) const
     return 0;
 }
 
+const char* XMLElement::Attribute(const char* name, const std::string& value) const {
+  return Attribute(name, value.c_str());
+}
+
 int XMLElement::IntAttribute(const char* name, int defaultValue) const
 {
 	int i = defaultValue;
@@ -1685,6 +1707,12 @@ float XMLElement::FloatAttribute(const char* name, float defaultValue) const
 	return f;
 }
 
+std::string XMLElement::StringAttribute(const char* name, const std::string& defaultValue) const {
+  std::string f = defaultValue;
+  QueryStringAttribute(name, &f);
+  return f;
+}
+
 const char* XMLElement::GetText() const
 {
     /* skip comment node */
@@ -1701,6 +1729,12 @@ const char* XMLElement::GetText() const
         return node->Value();
     }
     return 0;
+}
+
+void XMLElement::SetText(std::string v) {
+  char buf[BUF_SIZE];
+  XMLUtil::ToStr(v, buf, BUF_SIZE);
+  SetText(buf);
 }
 
 
@@ -1766,6 +1800,17 @@ void XMLElement::SetText( double v )
     char buf[BUF_SIZE];
     XMLUtil::ToStr( v, buf, BUF_SIZE );
     SetText( buf );
+}
+
+XMLError XMLElement::QueryStrText(std::string* fval) const {
+  if (FirstChild() && FirstChild()->ToText()) {
+    const char* t = FirstChild()->Value();
+    if (XMLUtil::ToStr(t, fval)) {
+      return XML_SUCCESS;
+    }
+    return XML_CAN_NOT_CONVERT_TEXT;
+  }
+  return XML_NO_TEXT_NODE;
 }
 
 
